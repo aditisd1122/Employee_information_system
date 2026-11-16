@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Information</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Employee Information</h1>
+
+        <p class="subtitle">Staff Details and Salary Records</p>
+
+        <button onclick="loadEmployees()">Load Employee Data</button>
+
+        <p id="message"></p>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Salary (₹)</th>
+                    </tr>
+                </thead>
+
+                <tbody id="employeeData">
+                    <tr>
+                        <td colspan="4">Click the button to load employee data.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p id="total"></p>
+
+    </div>
+
+    <script>
+
+        function loadEmployees() {
+
+            const tableBody = document.getElementById("employeeData");
+            const message = document.getElementById("message");
+
+            message.textContent = "Loading employee data...";
+
+            fetch("employees.xml")
+
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Cannot find employees.xml");
+                    }
+                    return response.text();
+                })
+
+                .then(data => {
+
+                    const parser = new DOMParser();
+
+                    const xml = parser.parseFromString(
+                        data, "application/xml"
+                    );
+
+                    if (xml.querySelector("parsererror")) {
+                        throw new Error("Invalid XML format");
+                    }
+
+                    const employees = xml.getElementsByTagName("employee");
+
+                    let output = "";
+
+                    for (let i = 0; i < employees.length; i++) {
+
+                        const id = employees[i].getElementsByTagName("id")[0].textContent;
+                        const name = employees[i].getElementsByTagName("name")[0].textContent;
+                        const department = employees[i].getElementsByTagName("department")[0].textContent;
+                        const salary = employees[i].getElementsByTagName("salary")[0].textContent;
+
+                        output += `
+                            <tr>
+                                <td>${id}</td>
+                                <td>${name}</td>
+                                <td>${department}</td>
+                                <td>${salary}</td>
+                            </tr>
+                        `;
+                    }
+
+                    tableBody.innerHTML = output;
+
+                    message.textContent = "Employee data loaded successfully!";
+
+                    document.getElementById("total").textContent =
+                        "Total Employees: " + employees.length;
+
+                })
+
+                .catch(error => {
+
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="4">${error.message}</td>
+                        </tr>
+                    `;
+
+                    message.textContent = "Unable to load employee data.";
+
+                    console.error(error);
+
+                });
+
+        }
+
+    </script>
+
+</body>
+</html>
